@@ -1,0 +1,65 @@
+#Weston Harby
+#deep learning model for CIFAR 10 dataset
+#CNN for CIFAR10 dataset
+#achieves ~65% accuracy after 20 epcohs with a batch size of 256
+#training takes 10 seconds per epoch witha 1080 ti
+
+
+#package import 
+import tensorflow 
+import numpy as np
+from tensorflow.python import keras
+from tensorflow.python.keras.datasets import fashion_mnist, mnist, cifar100, cifar10
+from tensorflow.python.keras.metrics import binary_accuracy, categorical_accuracy, sparse_categorical_accuracy, top_k_categorical_accuracy
+from tensorflow.python.keras.models import Sequential
+from tensorflow.python.keras.layers import Dense, Dropout
+from tensorflow.python.keras.layers import Flatten,  MaxPooling2D, Conv2D
+
+def CIFAR_10(batch_size, epochs):
+    #import dataset
+    (x_train, y_train), (x_test, y_test) = cifar10.load_data()
+    
+    #cast to float64
+    x_train = x_train.astype('float64')
+    x_test = x_test.astype('float64')
+    
+    #normalize colors
+    x_train /= 255
+    x_test /= 255
+    
+    #define categories
+    classes = 10
+    y_train = keras.utils.to_categorical(y_train, classes)
+    y_test = keras.utils.to_categorical(y_test, classes)
+    
+    #init model and layers
+    model = Sequential()
+    model.add(Conv2D(128, kernel_size=(3,3), input_shape=(32,32,3), activation='relu'))
+    model.add(Dropout(.4))
+    model.add(Conv2D(64, (2,2), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2,2)))
+    
+    model.add(Conv2D(128, kernel_size=(3,3), activation='relu'))
+    model.add(Dropout(.3))
+    model.add(Conv2D(64, (2,2), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2,2)))
+    
+    model.add(Conv2D(128, (3,3), activation='relu'))
+    model.add(Dropout(.2))
+    model.add(Conv2D(64, (2,2), activation='relu'))
+
+    
+    model.add(Flatten())
+    
+    model.add(Dense(750, activation='sigmoid'))
+    model.add(Dropout(.2))
+    model.add(Dense(500, activation='sigmoid'))
+    model.add(Dropout(.2))
+    model.add(Dense(100, activation='sigmoid'))
+    model.add(Dense(classes, activation='softmax'))
+    
+    model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['mean_squared_error', 'accuracy'])
+    model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, verbose=1, validation_data=(x_test,y_test))
+    
+    
+CIFAR_10(256, 20)
