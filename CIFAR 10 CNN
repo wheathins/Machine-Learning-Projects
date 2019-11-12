@@ -2,18 +2,15 @@
 #deep learning model for CIFAR 10 dataset
 #tensorflow 2.0 alpha
 #achieves ~75% accuracy on test data after 50 epcohs with a batch size of 256
-#training takes 10 seconds per epoch witha 1080 ti
+#training takes 10 seconds per epoch with a 1080 ti
 
 
-#package import 
+#package import
 import tensorflow
-import numpy as np
-import os
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Activation, Dropout, Flatten, Conv2D, MaxPooling2D
 from tensorflow.keras.datasets import cifar10
 from tensorflow.keras.models import model_from_json
-import random
 
 (x_train, y_train), (x_test, y_test) = cifar10.load_data()
 
@@ -61,6 +58,9 @@ def MNIST_train(batch_size, epochs):
 
     model.save_weights("model.h5")
     print("trained model saved to disk")
+
+
+def MNIST_execute():
     json_file = open('model.json', 'r')
     loaded_model_json = json_file.read()
     loaded_model = model_from_json(loaded_model_json)
@@ -71,6 +71,5 @@ def MNIST_train(batch_size, epochs):
     loaded_model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
     loaded_model.evaluate(x_test, y_test)
 
-    loaded_model.predict(x_test[934])
-
 MNIST_train(256, 50)
+MNIST_execute()
