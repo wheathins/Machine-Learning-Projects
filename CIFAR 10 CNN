@@ -25,7 +25,7 @@ y_test = tensorflow.keras.utils.to_categorical(y_test, 10)
 
 model = Sequential()
 
-def MNIST_train(batch_size, epochs):
+def CIFAR10_train(batch_size, epochs):
     model.add(Conv2D(256, (3,3), input_shape=(32,32,3,), activation='elu'))
     model.add(Conv2D(128, (3,3), activation='elu'))
 
@@ -60,7 +60,7 @@ def MNIST_train(batch_size, epochs):
     print("trained model saved to disk")
 
 
-def MNIST_execute():
+def CIFAR10_execute():
     json_file = open('model.json', 'r')
     loaded_model_json = json_file.read()
     loaded_model = model_from_json(loaded_model_json)
@@ -71,5 +71,5 @@ def MNIST_execute():
     loaded_model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
     loaded_model.evaluate(x_test, y_test)
 
-MNIST_train(256, 50)
-MNIST_execute()
+CIFAR10_train(256, 50)
+CIFAR10_execute()
