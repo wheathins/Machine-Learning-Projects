@@ -1,51 +1,66 @@
 #Weston Harby
-#basic feed forward densely connected NN for MNIST dataset
+#deep neural network model for MNIST dataset
 #~98% accuracy on test data after 20 epochs with batch size of 56
-#each epoch takes ~7 seconds on a 1080 ti
+#each epoch takes ~6 seconds on a 1080 ti
 
-#package import 
-import tensorflow 
-import numpy as cp
-from tensorflow.python import keras
-from tensorflow.python.keras.datasets import fashion_mnist, mnist, cifar100
-from tensorflow.python.keras.models import Sequential
-from tensorflow.python.keras.layers import Dense, Dropout
-from tensorflow.python.keras.layers import Flatten,  MaxPooling2D, Conv2D
 
-#main function that takes batch_size and epochs as inputs
-def Mnist(batch_size, epochs):
-    #load the datasets
-    (x_train,y_train), (x_test, y_test) = mnist.load_data()
+#package import
+import tensorflow
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Activation, Dropout, Flatten, Conv2D, MaxPooling2D
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.models import model_from_json
 
-    #reshape for training
-    x_train = x_train.reshape(60000,784).astype('float64')
-    x_test = x_test.reshape(10000,784).astype('float64')
-    
-    #normalize greyscale values
-    x_train /= 255
-    x_test /= 255
-    
-    #define classes
-    n_classes = 10
-    y_train = keras.utils.to_categorical(y_train, n_classes)
-    y_test = keras.utils.to_categorical(y_test, n_classes)
-    
-    #init model
-    model = Sequential()
-    model.add(Flatten())    
-          
+#import dataset
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+#reshape for convlutions, cast to float64
+x_train = x_train.reshape(60000, 28, 28, 1).astype('float64')
+x_test = x_test.reshape(10000, 28, 28, 1).astype('float64')
+
+#normalize greyscale values
+x_train /= 255
+x_test /= 255
+
+#define classes for training
+classes = 10
+y_train = tensorflow.keras.utils.to_categorical(y_train, classes)
+y_test = tensorflow.keras.utils.to_categorical(y_test, classes)
+
+#init and create model
+model = Sequential()
+
+def MNIST_train(batch_size, epochs):
+    model.add(Flatten())
+
     model.add(Dense(784, activation='sigmoid', input_shape=(784,)))
-    
     model.add(Dense(500, activation='sigmoid'))
-    
     model.add(Dense(500, activation='sigmoid'))
-    
     model.add(Dense(100, activation='sigmoid'))
-    
-    model.add(Dense(n_classes, activation='softmax'))
-    
+    model.add(Dense(classes, activation='softmax'))
+
     #compile and fit the model
-    model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+    model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['mean_squared_error', 'accuracy'])
     model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, verbose=1, validation_data=(x_test,y_test))
-    
-Mnist(56,20)  
+
+    model_json = model.to_json()
+    with open("model.json", "w") as json_file:
+        json_file.write(model_json)
+
+    model.save_weights("model.h5")
+    print("trained model saved to disk")
+
+
+def MNIST_execute():
+    json_file = open('model.json', 'r')
+    loaded_model_json = json_file.read()
+    loaded_model = model_from_json(loaded_model_json)
+    loaded_model.load_weights("model.h5")
+    json_file.close()
+    print("trained model loaded from disk")
+
+    loaded_model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+    loaded_model.evaluate(x_test, y_test)
+
+MNIST_train(56, 20)
+MNIST_execute()
